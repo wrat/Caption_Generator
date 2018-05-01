@@ -92,7 +92,7 @@ import os.path
 import random
 import sys
 import threading
-
+import numpy as np
 
 
 import nltk.tokenize
@@ -434,8 +434,6 @@ def _load_and_process_metadata(captions_file, image_dir,object_feature_file):
   # Extract the filenames.
   id_to_filename = [(x["id"], x["file_name"]) for x in caption_data["images"]]
 
-  object_features = object_file["Objects"]
-
   # Extract the captions. Each image_id is associated with multiple captions.
   id_to_captions = {}
   for annotation in caption_data["annotations"]:
@@ -454,9 +452,16 @@ def _load_and_process_metadata(captions_file, image_dir,object_feature_file):
   image_metadata = []
   num_captions = 0
   for image_id, base_filename in id_to_filename:
+    object_feature = None
     filename = os.path.join(image_dir, base_filename)
     captions = [_process_caption(c) for c in id_to_captions[image_id]]
-    object_feature = object_features[image_id]
+
+    if(image_id in object_features):
+      object_feature = object_features[image_id]
+
+    else:
+      object_feature = list(np.zeros((2048)))
+
     image_metadata.append(ImageMetadata(image_id, filename,object_feature,captions))
     num_captions += len(captions)
   print("Finished processing %d captions for %d images in %s" %
